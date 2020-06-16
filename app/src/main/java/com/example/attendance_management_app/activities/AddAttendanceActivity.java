@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
-public class AddAttendanceActivity extends AppCompatActivity {
+public class AddAttendanceActivity extends AppCompatActivity  {
     ArrayList<StudentDetails> studentDetailsList = new ArrayList<>();
-    AttendanceDetails[] attendanceDetailsArr;
+    ArrayList<AttendanceDetails> attendanceDetailsList= new ArrayList<>();
     HashMap<String, String> studentNameMap = new HashMap<>();
     AttendanceAdapter attendanceAdapter;
 
@@ -57,9 +57,9 @@ public class AddAttendanceActivity extends AppCompatActivity {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-        attendanceDetailsArr = new AttendanceDetails[studentDetailsList.size()];
+
         for (int i = 0; i < studentDetailsList.size(); i++) {
-            attendanceDetailsArr[i] = new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, false);
+           attendanceDetailsList.add( new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, false));
         }
         for (int i = 0; i < studentDetailsList.size(); i++) {
             studentNameMap.put(studentDetailsList.get(i).getRollNum(), studentDetailsList.get(i).getFullName());
@@ -71,14 +71,14 @@ public class AddAttendanceActivity extends AppCompatActivity {
         addStudentAttendFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attendanceDetailsArr = attendanceAdapter.getAttendanceDetailsArr();
-
+            final ArrayList<AttendanceDetails> changedAttendanceDetailsList=attendanceAdapter.getAttendanceDetailsList();
+                Log.d("stud",""+changedAttendanceDetailsList.get(0).isPresent());
                 for (int i = 0; i < studentDetailsList.size(); i++) {
                     final int finalI = i;
                     Executors.newSingleThreadExecutor().execute(new Runnable() {
                         @Override
                         public void run() {
-                            db.AttendanceDetailsDao().insert(attendanceDetailsArr[finalI]);
+                            db.AttendanceDetailsDao().insert(changedAttendanceDetailsList.get(finalI));
                             db.StudentDetailsDao().insert(studentDetailsList.get(finalI));
                             Log.d("db1", "success");
                         }
@@ -127,14 +127,18 @@ public class AddAttendanceActivity extends AppCompatActivity {
 
         RecyclerView classDetailsRv = findViewById(R.id.addStudentAttendRv);
         //  Log.d("lsit", "" + classDetailsList.size());
-        attendanceAdapter = new AttendanceAdapter(attendanceDetailsArr, studentNameMap);
+        attendanceAdapter = new AttendanceAdapter(attendanceDetailsList, studentNameMap);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         classDetailsRv.setLayoutManager(llm);
         classDetailsRv.setAdapter(attendanceAdapter);
     }
 //    @Override
-//    public void onCheckboxClickListener(int position, boolean b) {
-//       attendanceDetailsArr[position].setPresent(b);
-//        attendanceAdapter.notifyDataSetChanged();
+//    public void onCheckboxClickListener(AttendanceDetails attendanceDetails, boolean b) {
+//        int pos=attendanceDetailsList.indexOf(attendanceDetails);
+//        attendanceDetails.setPresent(b);
+//      attendanceDetailsList.remove(pos);
+//      attendanceDetailsList.add(attendanceDetails);
+//      attendanceAdapter.notifyDataSetChanged();
+//
 //    }
 }

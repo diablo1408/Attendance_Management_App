@@ -101,15 +101,28 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
         AutoCompleteTextView editTextFilledExposedDropdown =
                 findViewById(R.id.filled_exposed_dropdown);
         editTextFilledExposedDropdown.setAdapter(adapter);
-        if (flag.equals("edit") || flag.equals("copy")) {
+        editTextFilledExposedDropdown.setText("",false);
+        if (flag.equals("edit")) {
 
 
             editTextFilledExposedDropdown.setText("Batch" + lectureDetails.getBatchId());
             subjectName.setText(lectureDetails.getSubject());
             startTimeEd.setText(lectureDetails.getStartTime());
             lectureDateEd.setText(lectureDetails.getDate_time().substring(0, lectureDetails.getDate_time().indexOf("_")));
+            lectureDateEd.setFocusable(false);
             startTimeEd.setText(lectureDetails.getStartTime());
             hrsCount.setText(String.valueOf(lectureDetails.getLectureHrs()));
+            nextBtn.setText("Save");
+
+        }
+        if(flag.equals("copy")){
+            subjectName.setText(lectureDetails.getSubject());
+            startTimeEd.setText(lectureDetails.getStartTime());
+            lectureDateEd.setText(lectureDetails.getDate_time().substring(0, lectureDetails.getDate_time().indexOf("_")));
+
+            startTimeEd.setText(lectureDetails.getStartTime());
+            hrsCount.setText(String.valueOf(lectureDetails.getLectureHrs()));
+
 
         }
         startTimeEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -160,7 +173,26 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                     Toast.makeText(getApplicationContext(), "Lecture Details Edited", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
-                } else {
+                }
+                else if(flag.equals("copy")) {
+                    if (subjectName.getText() != null && hrsCount.getText() != null && startTime != null&&batchValue!=null) {
+                        Date curTime = Calendar.getInstance().getTime();
+                        final String date_time = lectureDate+ "_" + curTime;
+                        Executors.newSingleThreadExecutor().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                db.classDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
+                                id = db.classDetailsDao().getLectureId(date_time);
+                            }
+                        });
+                        Intent i = new Intent(getApplicationContext(), AddAttendanceActivity.class);
+                        i.putExtra("lectureId", id);
+                        i.putExtra("batchValue", batchValue);
+                        i.putExtra("dateTime", date_time);
+                        startActivity(i);
+                    }
+                }
+                else {
                     if (subjectName.getText() != null && hrsCount.getText() != null && lectureDate != null && startTime != null && batchValue != null) {
                         Date curTime = Calendar.getInstance().getTime();
                         final String date_time = lectureDate + "_" + curTime;

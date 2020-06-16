@@ -219,14 +219,14 @@ public class MainActivity extends AppCompatActivity implements LectureDetailsAda
         protected void onPreExecute() {
             super.onPreExecute();
 
-            params.put("ID", String.valueOf(lectureDetails.getId()));
-            params.put("Batch_ID", lectureDetails.getBatchId());
-            params.put("Subject", lectureDetails.getSubject());
-            params.put("Teacher_ID", teacherId);
-            params.put("Teacher_Name", teacherName);
-            params.put("Date__Time", lectureDetails.getDate_time());
-            params.put("No_Of_Hours", String.valueOf(lectureDetails.getLectureHrs()));
-            params.put("Start_Time", lectureDetails.getStartTime());
+            params.put("id", String.valueOf(lectureDetails.getId()));
+            params.put("batch_id", lectureDetails.getBatchId());
+            params.put("subject", lectureDetails.getSubject());
+            params.put("teacher_id", teacherId);
+            params.put("teacher_name", teacherName);
+            params.put("date_time", lectureDetails.getDate_time());
+            params.put("no_of_hours", String.valueOf(lectureDetails.getLectureHrs()));
+            params.put("start_time", lectureDetails.getStartTime());
 
 
         }

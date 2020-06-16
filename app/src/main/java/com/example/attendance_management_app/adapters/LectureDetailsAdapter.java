@@ -1,6 +1,7 @@
 package com.example.attendance_management_app.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,8 @@ public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final LectureDetails item = lectureDetailsList.get(position);
+        Log.d("id", ""+item.getId());
+        holder.mLectureId.setText(String.valueOf(item.getId()));
         holder.mSection.setText(item.getBatchId());
         holder.mSubject.setText(item.getSubject());
         holder.mLectureDate.setText(item.getDate_time().substring(0, item.getDate_time().indexOf("_")));
@@ -74,6 +77,7 @@ public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAd
         TextView mSection;
         TextView mSubject;
         TextView mLectureDate;
+        TextView mLectureId;
         ImageButton mEditBtn;
         ImageButton mCopyBtn;
         ImageButton mUploadBtn;
@@ -84,6 +88,7 @@ public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAd
             mSection = itemView.findViewById(R.id.sectionTv);
             mSubject = itemView.findViewById(R.id.subjectTv);
             mLectureDate = itemView.findViewById(R.id.lectureDateTv);
+            mLectureId=itemView.findViewById(R.id.lectureIdTv);
             mEditBtn = itemView.findViewById(R.id.lectureEditBtn);
             mCopyBtn = itemView.findViewById(R.id.lectureCopyBtn);
             mUploadBtn = itemView.findViewById(R.id.lectureUploadBtn);

@@ -15,28 +15,29 @@ import com.example.attendance_management_app.R;
 import com.example.attendance_management_app.modals.AttendanceDetails;
 import com.google.android.material.checkbox.MaterialCheckBox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Viewholder> {
 
-    private AttendanceDetails[] attendanceDetailsArr;
+    private ArrayList<AttendanceDetails> attendanceDetailsList;
     private HashMap<String, String> studentNameMap;
     private clickListener onClickListener;
 
 
-    public AttendanceAdapter(AttendanceDetails[] attendanceDetailsArr, HashMap<String, String> studentNameMap, clickListener onClickListener) {
-        this.attendanceDetailsArr = attendanceDetailsArr;
+    public AttendanceAdapter(ArrayList<AttendanceDetails> attendanceDetailsList, HashMap<String, String> studentNameMap, clickListener onClickListener) {
+        this.attendanceDetailsList = attendanceDetailsList;
         this.studentNameMap = studentNameMap;
         this.onClickListener = onClickListener;
     }
 
-    public AttendanceAdapter(AttendanceDetails[] attendanceDetailsArr, HashMap<String, String> studentNameMap) {
-        this.attendanceDetailsArr = attendanceDetailsArr;
+    public AttendanceAdapter(ArrayList<AttendanceDetails> attendanceDetailsList, HashMap<String, String> studentNameMap) {
+        this.attendanceDetailsList = attendanceDetailsList;
         this.studentNameMap = studentNameMap;
     }
 
-    public AttendanceDetails[] getAttendanceDetailsArr() {
-        return attendanceDetailsArr;
+    public ArrayList<AttendanceDetails> getAttendanceDetailsList() {
+        return attendanceDetailsList;
     }
 
     @NonNull
@@ -49,13 +50,14 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull Viewholder holder, final int position) {
+        final AttendanceDetails item=attendanceDetailsList.get(position);
 
-        holder.studentId.setText(attendanceDetailsArr[position].getStudent_Id());
-        holder.studentName.setText(studentNameMap.get(attendanceDetailsArr[position].getStudent_Id()));
+        holder.studentId.setText(item.getStudent_Id());
+        holder.studentName.setText(studentNameMap.get(item.getStudent_Id()));
         holder.Id.setText(String.valueOf(position + 1) + ". ");
 
-        holder.isPresent.setChecked(attendanceDetailsArr[position].isPresent());
-        Log.d("bool", "" + attendanceDetailsArr[position].isPresent());
+        holder.isPresent.setChecked(item.isPresent());
+        Log.d("bool", "" + item.isPresent());
 
 
         //  holder.isPresent.setEnabled(true);
@@ -64,7 +66,8 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Vi
         holder.isPresent.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                //  onClickListener.onCheckboxClickListener(position,b);
+                attendanceDetailsList.get(position).setPresent(b);
+               //   onClickListener.onCheckboxClickListener(item,b);
 
             }
         });
@@ -86,7 +89,7 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return attendanceDetailsArr.length;
+        return attendanceDetailsList.size();
     }
 
     static class Viewholder extends RecyclerView.ViewHolder {
@@ -109,7 +112,7 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Vi
     }
 
     public interface clickListener {
-        void onCheckboxClickListener(int position, boolean b);
+        void onCheckboxClickListener(AttendanceDetails item, boolean b);
     }
 
 
