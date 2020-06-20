@@ -53,6 +53,7 @@ public class UploadAttendanceData extends AsyncTask<Void, Void, Void> {
             HashMap<String, String> attendanceMap=new HashMap<>();
             AttendanceDetails item=attendanceDetails.get(i);
             attendanceMap.put("id", String.valueOf(item.getId()));
+            Log.d("tad", ""+item.getDate_Time());
             attendanceMap.put("student_id", item.getStudent_Id());
             attendanceMap.put("lecture_id", String.valueOf(item.getLecture_Id()));
             attendanceMap.put("date_time", item.getDate_Time());
@@ -69,7 +70,7 @@ public class UploadAttendanceData extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... voids) {
         JSONParser.makeHttpRequest(Url, paramsLectureDetails);
         for (int i=0;i<attendanceDetails.size();i++){
-            Log.d("map","sdsdsdfsd");
+          //  Log.d("map","sdsdsdfsd");
             JSONParser.makeHttpRequest(Url2, listOfStudents.get(i));
         }
 

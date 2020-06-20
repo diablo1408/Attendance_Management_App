@@ -48,6 +48,7 @@ public class AddAttendanceActivity extends AppCompatActivity  {
 
     static String batchValue;
     static int lectureId;
+    String date_time;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +56,7 @@ public class AddAttendanceActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_add_attendance);
         batchValue = getIntent().getStringExtra("batchValue");
         lectureId = getIntent().getIntExtra("lectureId", 0);
-        final String date_time = getIntent().getStringExtra("date_time");
+         date_time = getIntent().getStringExtra("dateTime");
         final AttendanceDatabase db = AttendanceDatabase.getDatabase(this);
         FloatingActionButton addStudentAttendFab = findViewById(R.id.addStudentAttendFab);
         alertDialogBuilder  = new AlertDialog.Builder(this);
@@ -66,7 +67,7 @@ public class AddAttendanceActivity extends AppCompatActivity  {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-        Log.d("lectureid", ""+lectureId);
+        Log.d("date_time", ""+date_time);
 
         for (int i = 0; i < studentDetailsList.size(); i++) {
            attendanceDetailsList.add( new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, false));
