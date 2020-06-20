@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.example.attendance_management_app.JSONParser;
 import com.example.attendance_management_app.MainActivity;
 import com.example.attendance_management_app.R;
+import com.example.attendance_management_app.backgroundtasks.getBatchDetails;
 import com.example.attendance_management_app.database.AttendanceDatabase;
 import com.example.attendance_management_app.modals.BatchDetails;
 import com.example.attendance_management_app.modals.LectureDetails;
@@ -40,7 +41,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 public class AddLectureActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-    static final String Url = "http://hiddenmasterminds.com/web/index.php?r=jflipgradattendance/getbatchbyinstitute";
+
     TextInputEditText startTimeEd;
     TextInputEditText hrsCount;
     TextInputEditText lectureDateEd;
@@ -201,13 +202,15 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                             public void run() {
                                 db.classDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
                                 id = db.classDetailsDao().getLectureId(date_time);
+                                Intent i = new Intent(getApplicationContext(), AddAttendanceActivity.class);
+                                i.putExtra("lectureId", id);
+                                i.putExtra("batchValue", batchValue);
+                                i.putExtra("dateTime", date_time);
+                                startActivity(i);
                             }
                         });
-                        Intent i = new Intent(getApplicationContext(), AddAttendanceActivity.class);
-                        i.putExtra("lectureId", id);
-                        i.putExtra("batchValue", batchValue);
-                        i.putExtra("dateTime", date_time);
-                        startActivity(i);
+
+
 
 
                     }
@@ -217,35 +220,7 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
 
     }
 
-    static class getBatchDetails extends AsyncTask<Void, Void, List<BatchDetails>> {
-        List<BatchDetails> mBatchDetailsList = new ArrayList<>();
 
-
-        @Override
-        protected List<BatchDetails> doInBackground(Void... voids) {
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put("institute_id", "100003");
-            String res = JSONParser.makeHttpRequest(Url, params);
-            try {
-                JSONObject jsonObject = new JSONObject(res);
-                JSONArray jsonArray = jsonObject.getJSONArray("data");
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    int id = jsonArray.getJSONObject(i).getInt("id");
-                    String name = jsonArray.getJSONObject(i).getString("name");
-                    String value = jsonArray.getJSONObject(i).getString("value");
-                    mBatchDetailsList.add(new BatchDetails(id, name, value));
-
-                }
-                Log.d("res", "" + jsonArray.length());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-            return mBatchDetailsList;
-
-        }
-    }
 
     public void showDatePickerDialog() {
         DatePickerDialog datePickerDialog = new DatePickerDialog(

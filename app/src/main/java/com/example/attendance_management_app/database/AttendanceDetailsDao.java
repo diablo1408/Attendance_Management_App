@@ -21,7 +21,8 @@ public interface AttendanceDetailsDao {
 
  //  @Query("SELECT lecture_Date FROM attendancedetails WHERE section==:section AND subject==:subject")
 //   List<String>  getLectureDateClassWise(String section,String subject);
-
+   @Query("SELECT * FROM attendancedetails WHERE lecture_Id==:lectureId")
+     List<AttendanceDetails> getAttendanceListStudent(int lectureId);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(AttendanceDetails... attendanceDetail);

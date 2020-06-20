@@ -16,6 +16,7 @@ import com.example.attendance_management_app.R;
 import com.example.attendance_management_app.modals.LectureDetails;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAdapter.ViewHolder> {
     private ArrayList<LectureDetails> lectureDetailsList;
@@ -61,7 +62,13 @@ public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAd
         holder.mUploadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                clickListener.onUploadBtnClickListener(item);
+                try {
+                    clickListener.onUploadBtnClickListener(item);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -103,7 +110,7 @@ public class LectureDetailsAdapter extends RecyclerView.Adapter<LectureDetailsAd
 
         void onCopyBtnClickListener(LectureDetails lectureDetails);
 
-        void onUploadBtnClickListener(LectureDetails lectureDetails);
+        void onUploadBtnClickListener(LectureDetails lectureDetails) throws ExecutionException, InterruptedException;
     }
 
 

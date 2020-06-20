@@ -1,9 +1,12 @@
 package com.example.attendance_management_app.activities;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +16,7 @@ import android.widget.Toast;
 
 import com.example.attendance_management_app.JSONParser;
 import com.example.attendance_management_app.MainActivity;
+import com.example.attendance_management_app.backgroundtasks.getStudentDetails;
 import com.example.attendance_management_app.database.AttendanceDatabase;
 import com.example.attendance_management_app.R;
 import com.example.attendance_management_app.adapters.AttendanceAdapter;
@@ -38,7 +42,10 @@ public class AddAttendanceActivity extends AppCompatActivity  {
     HashMap<String, String> studentNameMap = new HashMap<>();
     AttendanceAdapter attendanceAdapter;
 
-    static final String Url = "http://hiddenmasterminds.com/web/index.php?r=jflipgradattendance/getstudentbybatch";
+    AlertDialog alertDialog;
+    AlertDialog.Builder   alertDialogBuilder;
+
+
     static String batchValue;
     static int lectureId;
 
@@ -51,12 +58,15 @@ public class AddAttendanceActivity extends AppCompatActivity  {
         final String date_time = getIntent().getStringExtra("date_time");
         final AttendanceDatabase db = AttendanceDatabase.getDatabase(this);
         FloatingActionButton addStudentAttendFab = findViewById(R.id.addStudentAttendFab);
+        alertDialogBuilder  = new AlertDialog.Builder(this);
 
         try {
-            studentDetailsList = new getStudentDetails().execute().get();
+            getStudentDetails getStudentDetails=new getStudentDetails(batchValue,this);
+            studentDetailsList = getStudentDetails.execute().get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d("lectureid", ""+lectureId);
 
         for (int i = 0; i < studentDetailsList.size(); i++) {
            attendanceDetailsList.add( new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, false));
@@ -71,22 +81,40 @@ public class AddAttendanceActivity extends AppCompatActivity  {
         addStudentAttendFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            final ArrayList<AttendanceDetails> changedAttendanceDetailsList=attendanceAdapter.getAttendanceDetailsList();
-                Log.d("stud",""+changedAttendanceDetailsList.get(0).isPresent());
-                for (int i = 0; i < studentDetailsList.size(); i++) {
-                    final int finalI = i;
-                    Executors.newSingleThreadExecutor().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            db.AttendanceDetailsDao().insert(changedAttendanceDetailsList.get(finalI));
-                            db.StudentDetailsDao().insert(studentDetailsList.get(finalI));
-                            Log.d("db1", "success");
-                        }
-                    });
 
-                }
-                Toast.makeText(getApplicationContext(), "Attendance Added", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+
+                alertDialogBuilder
+                        .setMessage("Are you really sure ...")
+                        .setCancelable(true)
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                               // final ArrayList<AttendanceDetails> changedAttendanceDetailsList=attendanceAdapter.getAttendanceDetailsList();
+                              //  Log.d("stud",""+changedAttendanceDetailsList.get(0).isPresent());
+                                for (int i = 0; i < studentDetailsList.size(); i++) {
+                                    final int finalI = i;
+                                    Executors.newSingleThreadExecutor().execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            db.AttendanceDetailsDao().insert(attendanceDetailsList.get(finalI));
+                                            db.StudentDetailsDao().insert(studentDetailsList.get(finalI));
+                                           // Log.d("db1", ""+changedAttendanceDetailsList.size());
+                                        }
+                                    });
+
+                                }
+                                Toast.makeText(getApplicationContext(), "Attendance Added", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            }
+                        });
+                alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+
 
 
             }
@@ -94,32 +122,7 @@ public class AddAttendanceActivity extends AppCompatActivity  {
     }
 
 
-    static class getStudentDetails extends AsyncTask<Void, Void, ArrayList<StudentDetails>> {
-        ArrayList<StudentDetails> mStudentDetailsList = new ArrayList<>();
 
-        @Override
-        protected ArrayList<StudentDetails> doInBackground(Void... voids) {
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put("institute_id", "100003");
-            params.put("batch_value", batchValue);
-            String res = JSONParser.makeHttpRequest(Url, params);
-            try {
-                JSONObject jsonObject = new JSONObject(res);
-                JSONArray jsonArray = jsonObject.getJSONArray("data");
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    String rollNo = jsonArray.getJSONObject(i).getString("roll_no");
-                    int id = jsonArray.getJSONObject(i).getInt("user_id");
-                    String studentName = jsonArray.getJSONObject(i).getString("first_name");
-                    mStudentDetailsList.add(new StudentDetails(id, studentName, rollNo));
-
-                }
-                Log.d("res2", "" + jsonArray.length());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return mStudentDetailsList;
-        }
-    }
 
     void setStudentDetailsList() {
         //  StudentDetails [] studentDetailsarr= studentDetailsList.toArray(new StudentDetails[studentDetailsList.size()]);

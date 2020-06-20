@@ -23,7 +23,10 @@ import android.widget.Toast;
 
 import com.example.attendance_management_app.activities.AddLectureActivity;
 import com.example.attendance_management_app.adapters.LectureDetailsAdapter;
+import com.example.attendance_management_app.backgroundtasks.GetAttendanceDetails;
+import com.example.attendance_management_app.backgroundtasks.UploadAttendanceData;
 import com.example.attendance_management_app.database.AttendanceDatabase;
+import com.example.attendance_management_app.modals.AttendanceDetails;
 import com.example.attendance_management_app.modals.LectureDetails;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -33,10 +36,12 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements LectureDetailsAdapter.onClickListener {
     ArrayList<LectureDetails> lectureDetailsList = new ArrayList<>();
+    ArrayList<AttendanceDetails> attendanceDetailsList=new ArrayList<>();
     BottomSheetBehavior bottomSheetBehavior;
     TextView lectureDateTv;
     String lectureDate;
@@ -50,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements LectureDetailsAda
     TextInputEditText teacherNameEd;
     SharedPreferences.Editor editor;
     SharedPreferences pref;
-    static String Url = "http://hiddenmasterminds.com/web/index.php?r=jflipgradattendance/createlecture";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,58 +196,24 @@ public class MainActivity extends AppCompatActivity implements LectureDetailsAda
     }
 
     @Override
-    public void onUploadBtnClickListener(LectureDetails lectureDetails) {
-        new UploadData(lectureDetails,
-                String.valueOf(pref.getInt("teacherId", -1)),
-                pref.getString("teacherName", "no value"),
-                this
-        ).execute();
+    public void onUploadBtnClickListener(final LectureDetails lectureDetails) throws ExecutionException, InterruptedException {
+      //  Log.d("lecid", ""+lectureDetails.getId());
+
+           attendanceDetailsList=   new GetAttendanceDetails(db,lectureDetails.getId()).execute().get();
+               // Log.d("id", ""+attendanceDetailsList.get(2).getLecture_Id());
+                Log.d("btnsize", ""+attendanceDetailsList.size());
+                new UploadAttendanceData(lectureDetails,attendanceDetailsList,
+                        String.valueOf(pref.getInt("teacherId", -1)),
+                        pref.getString("teacherName", "no value"),
+                        this
+                ).execute();
+
+
+
 
     }
 
-    static class UploadData extends AsyncTask<Void, Void, Void> {
-        LectureDetails lectureDetails;
-        String teacherId;
-        String teacherName;
-        Context context;
-        HashMap<String, String> params = new HashMap<>();
 
-        public UploadData(LectureDetails lectureDetails, String teacherId, String teacherName, Context context) {
-            this.lectureDetails = lectureDetails;
-            this.teacherId = teacherId;
-            this.teacherName = teacherName;
-            this.context = context;
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            params.put("id", String.valueOf(lectureDetails.getId()));
-            params.put("batch_id", lectureDetails.getBatchId());
-            params.put("subject", lectureDetails.getSubject());
-            params.put("teacher_id", teacherId);
-            params.put("teacher_name", teacherName);
-            params.put("date_time", lectureDetails.getDate_time());
-            params.put("no_of_hours", String.valueOf(lectureDetails.getLectureHrs()));
-            params.put("start_time", lectureDetails.getStartTime());
-
-
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            JSONParser.makeHttpRequest(Url, params);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            Toast.makeText(context, "upload successful", Toast.LENGTH_SHORT).show();
-        }
-    }
 
 
 }
