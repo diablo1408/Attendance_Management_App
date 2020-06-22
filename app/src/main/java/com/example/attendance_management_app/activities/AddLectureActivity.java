@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,19 +20,15 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.example.attendance_management_app.JSONParser;
 import com.example.attendance_management_app.MainActivity;
 import com.example.attendance_management_app.R;
+import com.example.attendance_management_app.backgroundtasks.GetBatchDetailsDb;
 import com.example.attendance_management_app.backgroundtasks.getBatchDetails;
 import com.example.attendance_management_app.database.AttendanceDatabase;
 import com.example.attendance_management_app.modals.BatchDetails;
 import com.example.attendance_management_app.modals.LectureDetails;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,7 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class AddLectureActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
 
@@ -74,22 +75,49 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
         if (flag == null) {
             flag = "not needed";
         }
-        pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        pref = getApplicationContext().getSharedPreferences("MyPref", 0);
         editor = pref.edit();
         teacherId = pref.getInt("teacherId", 0);
+       if(isNetworkAvailable()){
+           try {
+               batchDetailsList = new getBatchDetails().execute().get();
+               for(int i=0;i<batchDetailsList.size();i++){
+                   final int finalI = i;
+                   Executors.newSingleThreadExecutor().execute(new Runnable() {
+                       @Override
+                       public void run() {
+                           db.batchDetailsDao().insert(batchDetailsList.get(finalI));
+                       }
+                   });
 
-        try {
-            batchDetailsList = new getBatchDetails().execute().get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
+               }
+           } catch (ExecutionException | InterruptedException e) {
+               e.printStackTrace();
+           }
+       }
+       else {
+
+
+           try {
+               batchDetailsList=new GetBatchDetailsDb(db).execute().get();
+           } catch (ExecutionException e) {
+               e.printStackTrace();
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
+           Log.d("offline", ""+batchDetailsList.size());
+
+
+       }
+      //  Log.d("offline", ""+batchDetailsList.size());
+
         ArrayList<String> batchNameList = new ArrayList<>();
         for (int i = 0; i < batchDetailsList.size(); i++) {
-            String name = batchDetailsList.get(i).getBatch_Name();
+            String name = batchDetailsList.get(i).getBatchName();
             batchNameList.add(name);
         }
         for (BatchDetails b : batchDetailsList) {
-            batchDetailsMap.put(b.getBatch_Name(), b);
+            batchDetailsMap.put(b.getBatchName(), b);
         }
 
 
@@ -113,7 +141,7 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
             lectureDateEd.setFocusable(false);
             startTimeEd.setText(lectureDetails.getStartTime());
             hrsCount.setText(String.valueOf(lectureDetails.getLectureHrs()));
-            nextBtn.setText("Save");
+
 
         }
         if(flag.equals("copy")){
@@ -142,15 +170,20 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                 }
             }
         });
-        editTextFilledExposedDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String batchName = (String) adapterView.getItemAtPosition(i);
-                BatchDetails batchItem = batchDetailsMap.get(batchName);
-                assert batchItem != null;
-                batchValue = batchItem.getBatch_Value();
-            }
-        });
+        if(!batchNameList.isEmpty()) {
+            editTextFilledExposedDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    String batchName = (String) adapterView.getItemAtPosition(i);
+                    BatchDetails batchItem = batchDetailsMap.get(batchName);
+                    assert batchItem != null;
+                    batchValue = batchItem.getBatchValue();
+                }
+            });
+        }
+        else{
+            Toast.makeText(this, "First time Internet Connection Needed", Toast.LENGTH_LONG).show();
+        }
 
         nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,12 +200,16 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                     Executors.newSingleThreadExecutor().execute(new Runnable() {
                         @Override
                         public void run() {
-                            db.classDetailsDao().update(new LectureDetails(lectureDetails.getId(), lectureDetails.getBatchId(), subject, teacherId, lectureDetails.getDate_time(), hrs, startTime));
+                            db.lectureDetailsDao().update(new LectureDetails(lectureDetails.getId(), lectureDetails.getBatchId(), subject, teacherId, lectureDetails.getDate_time(), hrs, startTime));
                             // Log.d("edit","successful");
                         }
                     });
                     Toast.makeText(getApplicationContext(), "Lecture Details Edited", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    Intent i=new Intent(getApplicationContext(),AddAttendanceActivity.class);
+                    i.putExtra("flag", "edit");
+                    i.putExtra("lectureId", lectureDetails.getId());
+                    i.putExtra("batchValue", lectureDetails.getBatchId());
+                    startActivity(i);
 
                 }
                 else if(flag.equals("copy")) {
@@ -182,8 +219,8 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                         Executors.newSingleThreadExecutor().execute(new Runnable() {
                             @Override
                             public void run() {
-                                db.classDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
-                                id = db.classDetailsDao().getLectureId(date_time);
+                                db.lectureDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
+                                id = db.lectureDetailsDao().getLectureId(date_time);
                             }
                         });
                         Intent i = new Intent(getApplicationContext(), AddAttendanceActivity.class);
@@ -200,8 +237,8 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
                         Executors.newSingleThreadExecutor().execute(new Runnable() {
                             @Override
                             public void run() {
-                                db.classDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
-                                id = db.classDetailsDao().getLectureId(date_time);
+                                db.lectureDetailsDao().insert(new LectureDetails(batchValue, subject, teacherId, date_time, hrs, startTime));
+                                id = db.lectureDetailsDao().getLectureId(date_time);
                                 Intent i = new Intent(getApplicationContext(), AddAttendanceActivity.class);
                                 i.putExtra("lectureId", id);
                                 i.putExtra("batchValue", batchValue);
@@ -218,6 +255,13 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
             }
         });
 
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
 
@@ -243,7 +287,8 @@ public class AddLectureActivity extends AppCompatActivity implements DatePickerD
 
     @Override
     public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
-        lectureDate = +dayOfMonth + "/" + month + "/" + year;
+
+        lectureDate = +dayOfMonth + "/" + (month+1) + "/" + year;
         lectureDateEd.setText(lectureDate);
 
 

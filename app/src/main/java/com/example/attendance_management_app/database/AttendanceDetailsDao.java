@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.example.attendance_management_app.modals.AttendanceDetails;
 import com.example.attendance_management_app.modals.StudentDetails;
@@ -29,4 +30,7 @@ public interface AttendanceDetailsDao {
 
     @Delete
     void delete(AttendanceDetails... attendanceDetail);
+
+    @Update
+    void update(AttendanceDetails... attendanceDetail);
 }

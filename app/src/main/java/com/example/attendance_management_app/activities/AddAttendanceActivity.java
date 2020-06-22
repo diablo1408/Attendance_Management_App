@@ -8,31 +8,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.attendance_management_app.JSONParser;
 import com.example.attendance_management_app.MainActivity;
+import com.example.attendance_management_app.backgroundtasks.GetAttendanceDetails;
 import com.example.attendance_management_app.backgroundtasks.getStudentDetails;
 import com.example.attendance_management_app.database.AttendanceDatabase;
 import com.example.attendance_management_app.R;
 import com.example.attendance_management_app.adapters.AttendanceAdapter;
 import com.example.attendance_management_app.modals.AttendanceDetails;
-import com.example.attendance_management_app.modals.BatchDetails;
 import com.example.attendance_management_app.modals.StudentDetails;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -49,6 +41,7 @@ public class AddAttendanceActivity extends AppCompatActivity  {
     static String batchValue;
     static int lectureId;
     String date_time;
+    String flag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,21 +50,42 @@ public class AddAttendanceActivity extends AppCompatActivity  {
         batchValue = getIntent().getStringExtra("batchValue");
         lectureId = getIntent().getIntExtra("lectureId", 0);
          date_time = getIntent().getStringExtra("dateTime");
+         flag=getIntent().getStringExtra("flag");
+
+         if(flag==null){
+             flag="sds";
+         }
         final AttendanceDatabase db = AttendanceDatabase.getDatabase(this);
         FloatingActionButton addStudentAttendFab = findViewById(R.id.addStudentAttendFab);
         alertDialogBuilder  = new AlertDialog.Builder(this);
-
-        try {
-            getStudentDetails getStudentDetails=new getStudentDetails(batchValue,this);
-            studentDetailsList = getStudentDetails.execute().get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+        if(flag.equals("edit")){
+            try {
+                attendanceDetailsList=new GetAttendanceDetails(db, lectureId).execute().get();
+                studentDetailsList=new getStudentDetails(batchValue, this).execute().get();
+                Log.d("TAG1",lectureId+"");
+                Log.d("TAG2",studentDetailsList.size()+"");
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        else{
+            try {
+                getStudentDetails getStudentDetails=new getStudentDetails(batchValue,this);
+                studentDetailsList = getStudentDetails.execute().get();
+                for (int i = 0; i < studentDetailsList.size(); i++) {
+                    attendanceDetailsList.add( new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, true));
+                }
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
         Log.d("date_time", ""+date_time);
 
-        for (int i = 0; i < studentDetailsList.size(); i++) {
-           attendanceDetailsList.add( new AttendanceDetails(studentDetailsList.get(i).getRollNum(), lectureId, date_time, false));
-        }
+
         for (int i = 0; i < studentDetailsList.size(); i++) {
             studentNameMap.put(studentDetailsList.get(i).getRollNum(), studentDetailsList.get(i).getFullName());
         }
@@ -97,13 +111,27 @@ public class AddAttendanceActivity extends AppCompatActivity  {
                             public void onClick(DialogInterface dialog, int id) {
                                // final ArrayList<AttendanceDetails> changedAttendanceDetailsList=attendanceAdapter.getAttendanceDetailsList();
                               //  Log.d("stud",""+changedAttendanceDetailsList.get(0).isPresent());
+                                if(flag.equals("edit")){
+                                    for (int i = 0; i < studentDetailsList.size(); i++) {
+                                        final int finalI = i;
+                                        Executors.newSingleThreadExecutor().execute(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                db.attendanceDetailsDao().update(attendanceDetailsList.get(finalI));
+
+                                                // Log.d("db1", ""+changedAttendanceDetailsList.size());
+                                            }
+                                        });
+
+                                    }
+                                }
                                 for (int i = 0; i < studentDetailsList.size(); i++) {
                                     final int finalI = i;
                                     Executors.newSingleThreadExecutor().execute(new Runnable() {
                                         @Override
                                         public void run() {
-                                            db.AttendanceDetailsDao().insert(attendanceDetailsList.get(finalI));
-                                            db.StudentDetailsDao().insert(studentDetailsList.get(finalI));
+                                            db.attendanceDetailsDao().insert(attendanceDetailsList.get(finalI));
+                                            db.studentDetailsDao().insert(studentDetailsList.get(finalI));
                                            // Log.d("db1", ""+changedAttendanceDetailsList.size());
                                         }
                                     });

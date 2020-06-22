@@ -11,8 +11,10 @@ public  class  GetAttendanceDetails extends AsyncTask<Void,Void,ArrayList<Attend
     ArrayList<AttendanceDetails> attendanceDetails=new ArrayList<>();
     AttendanceDatabase db;
     int lectureId;
+    String flag;
 
-    public GetAttendanceDetails( AttendanceDatabase db, int lectureId) {
+
+    public GetAttendanceDetails( AttendanceDatabase db, int lectureId ){
 
         this.db = db;
         this.lectureId = lectureId;
@@ -20,7 +22,8 @@ public  class  GetAttendanceDetails extends AsyncTask<Void,Void,ArrayList<Attend
 
     @Override
     protected ArrayList<AttendanceDetails> doInBackground(Void... voids) {
-        attendanceDetails= (ArrayList<AttendanceDetails>) db.AttendanceDetailsDao().getAttendanceListStudent(lectureId);
+
+        attendanceDetails= (ArrayList<AttendanceDetails>) db.attendanceDetailsDao().getAttendanceListStudent(lectureId);
 
         return attendanceDetails;
     }

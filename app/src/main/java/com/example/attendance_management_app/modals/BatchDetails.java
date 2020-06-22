@@ -1,15 +1,24 @@
 package com.example.attendance_management_app.modals;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
 public class BatchDetails {
 
-
+    @PrimaryKey @ColumnInfo(name = "id")
     private   int id;
-   private String batch_Name;
-    private String batch_Value;
-    public BatchDetails(int id, String batch_Name, String batch_Value) {
+    @ColumnInfo(name = "batchName")
+   private String batchName;
+    @ColumnInfo(name = "batchValue")
+    private String batchValue;
+
+
+    public BatchDetails(int id, String batchName, String batchValue) {
         this.id = id;
-        this.batch_Name = batch_Name;
-        this.batch_Value = batch_Value;
+        this.batchName = batchName;
+        this.batchValue = batchValue;
     }
 
     public int getId() {
@@ -20,19 +29,19 @@ public class BatchDetails {
         this.id = id;
     }
 
-    public String getBatch_Name() {
-        return batch_Name;
+    public String getBatchName() {
+        return batchName;
     }
 
-    public void setBatch_Name(String batch_Name) {
-        this.batch_Name = batch_Name;
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
     }
 
-    public String getBatch_Value() {
-        return batch_Value;
+    public String getBatchValue() {
+        return batchValue;
     }
 
-    public void setBatch_Value(String batch_Value) {
-        this.batch_Value = batch_Value;
+    public void setBatchValue(String batchValue) {
+        this.batchValue = batchValue;
     }
 }

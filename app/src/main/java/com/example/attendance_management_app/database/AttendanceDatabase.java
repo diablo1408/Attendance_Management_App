@@ -7,15 +7,17 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.attendance_management_app.modals.AttendanceDetails;
+import com.example.attendance_management_app.modals.BatchDetails;
 import com.example.attendance_management_app.modals.LectureDetails;
 import com.example.attendance_management_app.modals.StudentDetails;
 
-@Database(entities = {LectureDetails.class, StudentDetails.class, AttendanceDetails.class},version = 1,exportSchema = false)
+@Database(entities = {LectureDetails.class, StudentDetails.class, AttendanceDetails.class, BatchDetails.class},version = 1,exportSchema = false)
 
 public abstract class AttendanceDatabase extends RoomDatabase {
-    public abstract LectureDetailsDao classDetailsDao();
-    public abstract StudentDetailsDao StudentDetailsDao();
-    public abstract AttendanceDetailsDao AttendanceDetailsDao();
+    public abstract LectureDetailsDao lectureDetailsDao();
+    public abstract StudentDetailsDao studentDetailsDao();
+    public abstract AttendanceDetailsDao attendanceDetailsDao();
+    public abstract BatchDetailsDao batchDetailsDao();
 
     private static volatile AttendanceDatabase INSTANCE;
 

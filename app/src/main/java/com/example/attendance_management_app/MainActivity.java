@@ -6,11 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,7 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.example.attendance_management_app.activities.AddLectureActivity;
@@ -35,7 +32,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -144,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements LectureDetailsAda
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                lectureDetailsList = (ArrayList<LectureDetails>) db.classDetailsDao().getAll();
+                lectureDetailsList = (ArrayList<LectureDetails>) db.lectureDetailsDao().getAll();
                 runOnUiThread(
                         new Runnable() {
                             @Override

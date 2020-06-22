@@ -20,13 +20,13 @@ import java.util.HashMap;
 
 public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Viewholder> {
 
-    private ArrayList<AttendanceDetails> attendanceDetailsList;
+    private ArrayList<AttendanceDetails> attendanceDetailsList=new ArrayList<>();
     private HashMap<String, String> studentNameMap;
     private clickListener onClickListener;
 
 
     public AttendanceAdapter(ArrayList<AttendanceDetails> attendanceDetailsList, HashMap<String, String> studentNameMap, clickListener onClickListener) {
-        this.attendanceDetailsList = attendanceDetailsList;
+        this.attendanceDetailsList.addAll(attendanceDetailsList);
         this.studentNameMap = studentNameMap;
         this.onClickListener = onClickListener;
     }
@@ -57,7 +57,7 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.Vi
         holder.Id.setText(String.valueOf(position + 1) + ". ");
 
         holder.isPresent.setChecked(item.isPresent());
-        Log.d("bool", "" + item.isPresent());
+      //  Log.d("bool", "" + item.isPresent());
 
 
         //  holder.isPresent.setEnabled(true);
